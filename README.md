@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Yogures Cremosos — Tienda (Next.js)
 
-## Getting Started
+Tienda online del proyecto "Yogures Cremosos": catálogo de yogures agrupados por sabor (dos tamaños), carrito, checkout con fecha de entrega y comprobante de pago, historial de pedidos, perfil y notificaciones.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 (App Router), Tailwind CSS v4, Base UI (shadcn `base-nova`)
+- Supabase (Auth + Storage) y API propia en Go
+
+## Requisitos
+
+- Node.js compatible con Next.js 16
+- El backend corriendo (repo `yogures-backend`) en `http://localhost:8080`
+
+## Puesta en marcha
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+# crear .env.local con las variables de abajo
+npm run dev       # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Variables de entorno:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `NEXT_PUBLIC_API_URL` — URL de la API (default `http://localhost:8080`).
+- `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` — proyecto Supabase (auth + storage).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Verificación
 
-## Learn More
+```bash
+npm run build     # typecheck + build
+npm run lint
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Despliegue
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+En Vercel: conectar el repo, definir las mismas variables de entorno (apuntando `NEXT_PUBLIC_API_URL` a la API desplegada) y listo. Los orígenes CORS de la API deben incluir el dominio del deploy.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Probar desde otro dispositivo de la red (LAN)
 
-## Deploy on Vercel
+Por defecto la app llama a la API en `http://localhost:8080`. Si la abrís desde otro dispositivo por tu IP privada, ese `localhost` apunta al otro dispositivo y falla. Para probar en LAN:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- En `.env.local`: `NEXT_PUBLIC_API_URL=http://<tu-IP-privada>:8080` y reiniciá el dev server.
+- En `next.config.ts`: `allowedDevOrigins` debe incluir `http://<tu-IP-privada>:3000` (Next bloquea los chunks del dev server si no lo autorizás). Podés arrancar con `next dev -H 0.0.0.0`.
+- En `backend/.env`: `CORS_ORIGIN_CLIENTES=http://<tu-IP-privada>:3000` (y `CORS_ORIGIN_ADMIN` para el panel).
+- Recordá que es HTTP plano en tu red (el JWT viaja en claro) — solo para pruebas locales.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Enlaces
+
+- API: `yogures-backend`
+- Panel admin: `yogures-admin`
