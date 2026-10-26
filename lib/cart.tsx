@@ -15,6 +15,8 @@ interface CartContextValue {
   items: CartItem[];
   count: number;
   total: number;
+  /** `true` cuando ya se restauró el carrito desde localStorage. */
+  hydrated: boolean;
   addItem: (product: Product, size: ProductSize, quantity?: number) => void;
   updateQuantity: (productId: string, size: ProductSize, quantity: number) => void;
   removeItem: (productId: string, size: ProductSize) => void;
@@ -32,14 +34,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   // Restaura el carrito guardado solo en el cliente, después de hidratar.
+  // Diferido para no llamar setState de forma síncrona dentro del effect.
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw) as CartItem[]);
-    } catch {
-      // se ignora.
-    }
-    setHydrated(true);
+    queueMicrotask(() => {
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (raw) setItems(JSON.parse(raw) as CartItem[]);
+      } catch {
+        // se ignora.
+      }
+      setHydrated(true);
+    });
   }, []);
 
   // Persistencia en cada cambio (una vez restaurado el carrito).
@@ -122,12 +127,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       items,
       count,
       total,
+      hydrated,
       addItem,
       updateQuantity,
       removeItem,
       clearCart,
     }),
-    [items, count, total, addItem, updateQuantity, removeItem, clearCart],
+    [items, count, total, hydrated, addItem, updateQuantity, removeItem, clearCart],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

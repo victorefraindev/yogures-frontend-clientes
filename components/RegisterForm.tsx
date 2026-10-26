@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Loader2, UserPlus } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { registerDemo } from "@/lib/mock-store";
 import { setSessionCookie } from "@/lib/session-cookie";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +21,6 @@ import { toast } from "@/components/ui/toast";
 type Errors = Partial<Record<"name" | "lastname" | "email" | "phone-number" | "password", string>>;
 
 export function RegisterForm({ next }: { next?: string }) {
-  const router = useRouter();
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
@@ -54,51 +52,22 @@ export function RegisterForm({ next }: { next?: string }) {
     }
 
     setIsPending(true);
-    const supabase = createClient();
-    const { data, error } = await supabase.auth.signUp({
+    registerDemo({
+      name: payload.name,
+      lastname: payload.lastname,
       email: payload.email,
-      password: payload.password,
-      options: {
-        data: {
-          name: payload.name,
-          lastname: payload.lastname,
-          phone_number: payload["phone-number"],
-        },
-      },
+      phone: payload["phone-number"],
     });
-    setIsPending(false);
-
-    if (error) {
-      if (error.code === "user_already_exists") {
-        setFormError("El correo que intenta registrar ya existe.");
-      } else {
-        setFormError(error.message);
-      }
-      return;
-    }
-
-    // Si Supabase tiene confirmación de email activada no devuelve sesión:
-    // pedimos confirmar antes de ingresar.
-    if (!data.session) {
-      toast.add({
-        type: "success",
-        title: "Cuenta creada",
-        description: "Revisá tu correo para confirmar tu cuenta.",
-      });
-      router.push("/login");
-      return;
-    }
-
-    // Guardamos el token de sesión en la cookie `jwt` para enviarlo después
-    // al backend propio.
-    setSessionCookie(data.session.access_token);
+    setSessionCookie("demo-session");
 
     toast.add({
       type: "success",
       title: "Cuenta creada",
-      description: "Bienvenido a Yogures Cremosos.",
+      description: "Bienvenido a Yogures Cremosos (demo).",
     });
-    router.push(next ?? "/perfil");
+
+    // Recarga completa para que el layout del servidor lea la cookie nueva.
+    window.location.assign(next ?? "/perfil");
   }
 
   return (
@@ -109,7 +78,8 @@ export function RegisterForm({ next }: { next?: string }) {
           Creá tu cuenta
         </CardTitle>
         <CardDescription>
-          Registrate para hacer pedidos más rápido y ver tu historial.
+          Demo: los datos quedan guardados solo en este navegador. No se crea
+          ninguna cuenta real.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -123,7 +93,7 @@ export function RegisterForm({ next }: { next?: string }) {
                   name="name"
                   autoComplete="given-name"
                   aria-invalid={!!errors.name}
-                  placeholder="Victor"
+                  placeholder="Victoria"
                 />
                 {errors.name && <FieldError>{errors.name}</FieldError>}
               </Field>
@@ -135,7 +105,7 @@ export function RegisterForm({ next }: { next?: string }) {
                   name="lastname"
                   autoComplete="family-name"
                   aria-invalid={!!errors.lastname}
-                  placeholder="Medina"
+                  placeholder="Pérez"
                 />
                 {errors.lastname && <FieldError>{errors.lastname}</FieldError>}
               </Field>
@@ -149,7 +119,7 @@ export function RegisterForm({ next }: { next?: string }) {
                 type="email"
                 autoComplete="email"
                 aria-invalid={!!errors.email}
-                placeholder="victor@gmail.com"
+                placeholder="demo@yogures.com"
               />
               {errors.email && <FieldError>{errors.email}</FieldError>}
             </Field>
@@ -162,7 +132,7 @@ export function RegisterForm({ next }: { next?: string }) {
                 type="tel"
                 autoComplete="tel"
                 aria-invalid={!!errors["phone-number"]}
-                placeholder="+5812345678901"
+                placeholder="+58 412-1234567"
               />
               {errors["phone-number"] && (
                 <FieldError>{errors["phone-number"]}</FieldError>

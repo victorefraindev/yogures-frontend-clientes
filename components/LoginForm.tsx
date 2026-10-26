@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Loader2, LogIn } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { loginDemo } from "@/lib/mock-store";
 import { setSessionCookie } from "@/lib/session-cookie";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +21,6 @@ import { toast } from "@/components/ui/toast";
 type Errors = Partial<Record<"email" | "password", string>>;
 
 export function LoginForm({ next }: { next?: string }) {
-  const router = useRouter();
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
@@ -48,30 +46,17 @@ export function LoginForm({ next }: { next?: string }) {
     }
 
     setIsPending(true);
-    const supabase = createClient();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: payload.email,
-      password: payload.password,
-    });
-    setIsPending(false);
-
-    if (error) {
-      setFormError(error.message);
-      return;
-    }
-
-    // Guardamos el token de sesión en la cookie `jwt` para enviarlo después
-    // al backend propio.
-    if (data.session) {
-      setSessionCookie(data.session.access_token);
-    }
+    loginDemo(payload.email);
+    setSessionCookie("demo-session");
 
     toast.add({
       type: "success",
       title: "¡Hola de nuevo!",
-      description: "Sesión iniciada correctamente.",
+      description: "Sesión iniciada en el modo demo.",
     });
-    router.push(next ?? "/perfil");
+
+    // Recarga completa para que el layout del servidor lea la cookie nueva.
+    window.location.assign(next ?? "/perfil");
   }
 
   return (
@@ -82,7 +67,8 @@ export function LoginForm({ next }: { next?: string }) {
           Ingresá a tu cuenta
         </CardTitle>
         <CardDescription>
-          Accedé para ver tus yogures recomendados y pedidos anteriores.
+          Demo: cualquier correo y contraseña funcionan. Tus pedidos se guardan
+          solo en este navegador.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -96,7 +82,8 @@ export function LoginForm({ next }: { next?: string }) {
                 type="email"
                 autoComplete="email"
                 aria-invalid={!!errors.email}
-                placeholder="victor@gmail.com"
+                defaultValue="demo@yogures.com"
+                placeholder="demo@yogures.com"
               />
               {errors.email && <FieldError>{errors.email}</FieldError>}
             </Field>
@@ -109,6 +96,7 @@ export function LoginForm({ next }: { next?: string }) {
                 type="password"
                 autoComplete="current-password"
                 aria-invalid={!!errors.password}
+                defaultValue="demo1234"
                 placeholder="••••••••"
               />
               {errors.password && <FieldError>{errors.password}</FieldError>}

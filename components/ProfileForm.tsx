@@ -13,9 +13,10 @@ import { toast } from "@/components/ui/toast";
 interface ProfileFormProps {
   userId: string;
   profile: ClientProfile;
+  onSaved?: (profile: ClientProfile) => void;
 }
 
-export function ProfileForm({ userId, profile }: ProfileFormProps) {
+export function ProfileForm({ userId, profile, onSaved }: ProfileFormProps) {
   const [values, setValues] = useState<ClientProfile>(profile);
   const [errors, setErrors] = useState<Partial<Record<keyof ClientProfile, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -52,6 +53,7 @@ export function ProfileForm({ userId, profile }: ProfileFormProps) {
       return;
     }
 
+    onSaved?.(values);
     toast.add({
       type: "success",
       title: "Perfil actualizado",

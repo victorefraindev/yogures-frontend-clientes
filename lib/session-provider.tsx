@@ -7,16 +7,16 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { getDemoSession } from "@/lib/mock-store";
 import { SESSION_COOKIE } from "@/lib/session-constants";
 import { setSessionCookie } from "@/lib/session-cookie";
 
 /**
- * Estado de sesión reactivo del lado cliente.
+ * Estado de sesión reactivo del lado cliente (rama `demo`).
  *
- * Restaura la cookie `jwt` desde la sesión de Supabase (localStorage) y expone
- * `isLoggedIn` para que el Header muestre "Ver perfil" / "Ingresar" sin esperar
- * un reload. `initial` viene del servidor (SSR) para evitar flash.
+ * Restaura la cookie `jwt` desde la sesión guardada en localStorage y expone
+ * `isLoggedIn` para que el Header muestre "Ver perfil" / "Ingresar".
+ * `initial` viene del servidor (SSR) para evitar flash.
  */
 const SessionContext = createContext<boolean>(false);
 
@@ -37,22 +37,15 @@ export function SessionProvider({
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(initial);
 
   useEffect(() => {
-    const supabase = createClient();
-    let cancelled = false;
-
-    supabase.auth.getSession().then(({ data }) => {
-      if (cancelled) return;
-      if (data.session) {
-        setSessionCookie(data.session.access_token);
+    // Diferido para no llamar setState de forma síncrona dentro del effect.
+    queueMicrotask(() => {
+      if (getDemoSession()) {
+        setSessionCookie("demo-session");
         setIsLoggedIn(true);
-      } else {
-        setIsLoggedIn(hasSessionCookie());
+        return;
       }
+      setIsLoggedIn(hasSessionCookie());
     });
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   return (

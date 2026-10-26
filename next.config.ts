@@ -18,9 +18,9 @@ if (isProd) {
         "default-src 'self'",
         "script-src 'self' 'unsafe-inline'",
         "style-src 'self' 'unsafe-inline'",
-        "img-src 'self' data: https://*.supabase.co blob:",
+        "img-src 'self' data: blob:",
         "font-src 'self' data:",
-        "connect-src 'self' http://localhost:8080 https: wss:",
+        "connect-src 'self' https: wss:",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "form-action 'self'",
@@ -34,12 +34,6 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["http://192.168.1.108:3000"],
   images: {
     formats: ["image/avif", "image/webp"],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**.supabase.co",
-      },
-    ],
   },
   headers: async () => [
     {

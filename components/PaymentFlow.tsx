@@ -32,8 +32,8 @@ import { toast } from "@/components/ui/toast";
 type Step = "resumen" | "comprobante" | "listo";
 
 export function PaymentFlow() {
-  const { items, total, clearCart } = useCart();
-  const [step, setStep] = useState<Step>(items.length ? "resumen" : "listo");
+  const { items, total, clearCart, hydrated } = useCart();
+  const [step, setStep] = useState<Step>("resumen");
   const [submitting, setSubmitting] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -101,6 +101,18 @@ export function PaymentFlow() {
     { key: "comprobante", label: "Comprobante" },
     { key: "listo", label: "Confirmado" },
   ] as const;
+
+  // Espera a que el carrito se restaure desde localStorage.
+  if (!hydrated) {
+    return (
+      <Card className="mx-auto max-w-lg text-center">
+        <CardContent className="flex flex-col items-center gap-4 pt-10 pb-10">
+          <Loader2 className="size-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Cargando tu carrito…</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Paso final: confirmación.
   if (step === "listo") {

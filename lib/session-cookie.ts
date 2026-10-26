@@ -2,7 +2,10 @@ import { SESSION_COOKIE } from "@/lib/session-constants";
 
 const SECURE = process.env.NODE_ENV === "production" ? "; Secure" : "";
 
-/** Guarda el access_token en la cookie `jwt` (la lee el SSR y la envía al backend). */
+/**
+ * Marca de sesión de la demo. No es un JWT real: solo indica al SSR que hay
+ * una sesión local activa.
+ */
 export function setSessionCookie(token: string): void {
   document.cookie = `${SESSION_COOKIE}=${token}; path=/; max-age=3600; SameSite=Lax${SECURE}`;
 }

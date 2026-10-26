@@ -1,23 +1,16 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
+import { clearDemoSession } from "@/lib/mock-store";
 import { clearSessionCookie } from "@/lib/session-cookie";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/toast";
 
 export function LogoutButton() {
-  const router = useRouter();
-
   function handleLogout() {
+    clearDemoSession();
     clearSessionCookie();
-    toast.add({
-      type: "info",
-      title: "Sesión cerrada",
-      description: "Te esperamos pronto.",
-    });
-    router.push("/");
-    router.refresh();
+    // Recarga completa para limpiar el estado de sesión del layout.
+    window.location.replace("/");
   }
 
   return (

@@ -2,32 +2,26 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { getDemoSession } from "@/lib/mock-store";
+import { SESSION_COOKIE } from "@/lib/session-constants";
 import { setSessionCookie } from "@/lib/session-cookie";
 
 /**
- * Auto-login: si ya existe una sesión de Supabase (localStorage) pero falta la
- * cookie `jwt` (por ejemplo al volver a la página tras la expiración), restaura
- * la cookie y redirige al perfil sin pasar por el formulario.
+ * Auto-login de la demo: si hay una sesión local guardada pero falta la cookie
+ * `jwt` (por ejemplo al volver a la página), la restaura y redirige al perfil.
  */
 export function AutoLogin({ next }: { next?: string }) {
   const router = useRouter();
 
   useEffect(() => {
-    const supabase = createClient();
-    let cancelled = false;
+    const hasCookie = document.cookie
+      .split(";")
+      .some((cookie) => cookie.trim().startsWith(`${SESSION_COOKIE}=`));
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (cancelled) return;
-      if (!data.session) return;
+    if (!getDemoSession() && !hasCookie) return;
 
-      setSessionCookie(data.session.access_token);
-      router.replace(next ?? "/perfil");
-    });
-
-    return () => {
-      cancelled = true;
-    };
+    setSessionCookie("demo-session");
+    router.replace(next ?? "/perfil");
   }, [router, next]);
 
   return null;
