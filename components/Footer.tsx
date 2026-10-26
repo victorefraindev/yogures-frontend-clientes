@@ -67,8 +67,7 @@ export function Footer() {
         </div>
 
         <p className="mt-8 border-t border-border pt-6 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Yogures Cremosos. Todos los derechos
-          reservados.
+          © {new Date().getFullYear()} Yogures Cremosos · Demo con datos locales
         </p>
       </div>
     </footer>
